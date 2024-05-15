@@ -42,11 +42,11 @@ jobs:
         run: |
           python3 scripts/update_release.py ${{ steps.get_version.outputs.version-without-v }} '${{ steps.tag.outputs.message }}'
       
-      - name: Commit files
-        run: |
-          git config --global user.name 'yingyingqiqi'
-          git config --global user.email '48437786+yingyingqiqi@users.noreply.github.com'
-          git commit -am 'chore: update appcast.json and info.json'
+      # - name: Commit files
+      #   run: |
+      #     git config --global user.name 'yingyingqiqi'
+      #     git config --global user.email '48437786+yingyingqiqi@users.noreply.github.com'
+      #     git commit -am 'chore: update appcast.json and info.json'
 
       # - name: Push changes
       #   uses: ad-m/github-push-action@master
