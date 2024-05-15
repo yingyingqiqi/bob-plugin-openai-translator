@@ -48,11 +48,11 @@ jobs:
           git config --global user.email '48437786+yingyingqiqi@users.noreply.github.com'
           git commit -am 'chore: update appcast.json and info.json'
 
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: 'maintenance'
+      # - name: Push changes
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: 'maintenance'
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
