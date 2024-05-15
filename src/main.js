@@ -233,6 +233,7 @@ function translate(query, completion) {
         });
     }
     const modelValue = isCustomModelRequired ? customModel : model;
+    
     const trimmedApiKeys = apiKeys.endsWith(",") ? apiKeys.slice(0, -1) : apiKeys;
     const apiKeySelection = trimmedApiKeys.split(",").map(key => key.trim());
     const apiKey = apiKeySelection[Math.floor(Math.random() * apiKeySelection.length)];
