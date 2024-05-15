@@ -210,7 +210,18 @@ function translate(query, completion) {
         });
     }
 
-    const { model, apiKeys, apiUrl, apiVersion, deploymentName } = $option;
+    const { customModel, model, apiKeys, apiUrl, apiVersion, deploymentName } = $option;
+
+    const isCustomModelRequired = model === "custom";
+    if (isCustomModelRequired && !customModel) {
+        completion({
+            error: {
+                type: "param",
+                message: "配置错误 - 请确保您在插件配置中填入了正确的自定义模型名称",
+                addtion: "请在插件配置中填写自定义模型名称",
+            },
+        });
+    }
 
     if (!apiKeys) {
         completion({
@@ -221,6 +232,7 @@ function translate(query, completion) {
             },
         });
     }
+    const modelValue = isCustomModelRequired ? customModel : model;
     const trimmedApiKeys = apiKeys.endsWith(",") ? apiKeys.slice(0, -1) : apiKeys;
     const apiKeySelection = trimmedApiKeys.split(",").map(key => key.trim());
     const apiKey = apiKeySelection[Math.floor(Math.random() * apiKeySelection.length)];
@@ -246,7 +258,7 @@ function translate(query, completion) {
     }
 
     const header = buildHeader(isAzureServiceProvider, apiKey);
-    const body = buildRequestBody(model, query);
+    const body = buildRequestBody(modelValue, query);
 
     (async () => {
         const result = await $http.request({
