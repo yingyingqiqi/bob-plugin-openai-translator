@@ -1,3 +1,11 @@
+> **注意**  
+此插件对原有内容进行了修改，支持 Bob 社区版 0.10.3。  
+- 新增功能：自定义 GPT 型号、润色模式、GPT 提问模式、 单词模式。
+
+![新增内容](src/setting.png)
+
+![新增内容](src/example.png)
+
 <h4 align="right">
   <strong>简体中文</strong> | <a href="https://github.com/yetone/bob-plugin-openai-translator/blob/main/docs/README_EN.md">English</a>
 </h4>

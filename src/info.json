@@ -111,6 +111,52 @@
       "title": "用户指令",
       "defaultValue": "translate from $sourceLang to $targetLang:\n\n$text",
       "desc": "可选项。自定义 User Prompt，填写则会覆盖默认的 User Prompt，默认值为`$text`（即翻译窗口输入框内的文本）。\n\n自定义 Prompt 中可以使用与系统指令中相同的变量"
-    }
+    },
+    {
+      "identifier": "workMode",
+      "type": "menu",
+      "title": "模式",
+      "defaultValue": "1",
+      "desc": "请选择插件工作模式",
+      "menuValues": [
+        {
+          "title": "翻译模式",
+          "value": "1"
+        },
+        {
+          "title": "润色模式(快捷关键字 @OPT)",
+          "value": "2"
+        },
+        {
+          "title": "提问模式(快捷关键字 @GPT)",
+          "value": "3"
+        },
+        {
+          "title": "单词模式(快捷关键字 @Word)",
+          "value": "4"
+        },
+        {
+          "title": "自定义",
+          "value": "5"
+        }
+      ]
+    },
+    {
+      "identifier": "polishingMode",
+      "type": "menu",
+      "title": "润色模式,",
+      "defaultValue": "simplicity",
+      "desc": "只在润色模式时可用，是否输出润色原因",
+      "menuValues": [
+        {
+          "title": "简洁（只输出润色后的文本）",
+          "value": "simplicity"
+        },
+        {
+          "title": "详尽（附加解释修改原因）(快捷方式，翻译语言相等时)",
+          "value": "detailed"
+        }
+      ]
+    },
   ]
 }

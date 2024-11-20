@@ -34,48 +34,76 @@ function buildHeader(isAzureServiceProvider, apiKey) {
 /**
  * @param {Bob.TranslateQuery} query
  * @returns {{ 
- *  generatedSystemPrompt: string, 
- *  generatedUserPrompt: string 
- * }}
+*  generatedSystemPrompt: string, 
+*  generatedUserPrompt: string,
+*  is_shortcut: boolean
+* }}
 */
-function generatePrompts(query) {
-    let generatedSystemPrompt = SYSTEM_PROMPT;
-    const { detectFrom, detectTo } = query;
-    const sourceLang = lang.langMap.get(detectFrom) || detectFrom;
-    const targetLang = lang.langMap.get(detectTo) || detectTo;
-    let generatedUserPrompt = `translate from ${sourceLang} to ${targetLang}`;
+function generatePrompts(query, workMode, polishingMode) {
+   const { detectFrom, detectTo } = query;
+   const sourceLang = lang.langMap.get(detectFrom) || detectFrom;
+   const targetLang = lang.langMap.get(detectTo) || detectTo;
 
-    if (detectTo === "wyw" || detectTo === "yue") {
-        generatedUserPrompt = `翻译成${targetLang}`;
-    }
+   const isPolishingMode = query.text.toLowerCase().includes("@opt");
+   const isGPTMode = query.text.toLowerCase().includes("@gpt");
+   const isWordMode = query.text.toLowerCase().includes("@word");
 
-    if (
-        detectFrom === "wyw" ||
-        detectFrom === "zh-Hans" ||
-        detectFrom === "zh-Hant"
-    ) {
-        if (detectTo === "zh-Hant") {
-            generatedUserPrompt = "翻译成繁体白话文";
-        } else if (detectTo === "zh-Hans") {
-            generatedUserPrompt = "翻译成简体白话文";
-        } else if (detectTo === "yue") {
-            generatedUserPrompt = "翻译成粤语白话文";
-        }
-    }
-    if (detectFrom === detectTo) {
-        generatedSystemPrompt =
-            "You are a text embellisher, you can only embellish the text, don't interpret it.";
-        if (detectTo === "zh-Hant" || detectTo === "zh-Hans") {
-            generatedUserPrompt = "润色此句";
-        } else {
-            generatedUserPrompt = "polish this sentence";
-        }
-    }
+   const text = query.text.replace(/@opt|@gpt|@word/gi, "");
 
-    generatedUserPrompt = `${generatedUserPrompt}:\n\n${query.text}`
+   let generatedSystemPrompt = "";
+   let generatedUserPrompt = "";
+   
+   if (workMode === "1" && !isGPTMode && !isPolishingMode && !isWordMode) {
+       generatedSystemPrompt =
+       "You are a translation engine that can only translate text and cannot interpret it.:"
+       generatedUserPrompt = `translate from ${sourceLang} to ${targetLang}`;
 
-    return { generatedSystemPrompt, generatedUserPrompt };
+       if (detectTo === "wyw" || detectTo === "yue") {
+           generatedUserPrompt = `翻译成${targetLang}:`;
+       }
+
+       if (
+           detectFrom === "wyw" ||
+           detectFrom === "zh-Hans" ||
+           detectFrom === "zh-Hant"
+       ) {
+           if (detectTo === "zh-Hant") {
+               generatedUserPrompt = "翻译成繁体白话文:";
+           } else if (detectTo === "zh-Hans") {
+               generatedUserPrompt = "翻译成简体白话文:";
+           } else if (detectTo === "yue") {
+               generatedUserPrompt = "翻译成粤语白话文:";
+           }
+       }
+
+   } else if (workMode === "2" || isPolishingMode) {
+       
+       const promptInfo = lang.revisionPromptsLocalized[detectFrom] || {
+           prompt: lang.revisionPrompts.simplicity,
+           detailed: lang.revisionPrompts.detailed,
+         };
+
+       generatedSystemPrompt = promptInfo.prompt;
+       if (polishingMode === "detailed" || detectFrom === detectTo) {
+           generatedSystemPrompt += promptInfo.detailed;
+       }
+       
+   } else if (workMode === "3" || isGPTMode) {
+       generatedSystemPrompt = `Please answer the following question`;
+   } else if (workMode === "4" || isWordMode) {
+       generatedSystemPrompt = "You are a translation engine that can only translate text and cannot interpret it."
+       const translationPrompt = `please translate this word using dictionary mode, for example, what are the meanings and give a few examples. Example sentences should contain translations in both the source and target languages. Please note that this dictionary should be displayed in the target language.`;
+       generatedUserPrompt = `${translationPrompt} from "${sourceLang}" to "${targetLang}":`;
+   }
+
+
+   generatedUserPrompt = `${generatedUserPrompt}\n${text}`
+   
+   const is_shortcut = isPolishingMode || isGPTMode || isWordMode;
+
+   return { generatedSystemPrompt, generatedUserPrompt, is_shortcut };
 }
+
 
 /**
  * @param {string} prompt
@@ -107,14 +135,11 @@ function replacePromptKeywords(prompt, query) {
  * }}
 */
 function buildRequestBody(model, query) {
-    let { customSystemPrompt, customUserPrompt } = $option;
-    const { generatedSystemPrompt, generatedUserPrompt } = generatePrompts(query);
+    let { customSystemPrompt, customUserPrompt, workMode, polishingMode } = $option;
+    const { generatedSystemPrompt, generatedUserPrompt, is_shortcut } = generatePrompts(query, workMode, polishingMode);
 
-    customSystemPrompt = replacePromptKeywords(customSystemPrompt, query);
-    customUserPrompt = replacePromptKeywords(customUserPrompt, query);
-
-    const systemPrompt = customSystemPrompt || generatedSystemPrompt;
-    const userPrompt = customUserPrompt || generatedUserPrompt;
+    const systemPrompt = is_shortcut ? generatedSystemPrompt : (replacePromptKeywords(customSystemPrompt, query) || generatedSystemPrompt);
+    const userPrompt = is_shortcut ? generatedUserPrompt : (replacePromptKeywords(customUserPrompt, query) || generatedUserPrompt);
 
     const standardBody = {
         model: model,
